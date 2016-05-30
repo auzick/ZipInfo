@@ -3,7 +3,7 @@ Zip code data provider for Sitecore. Automatically loads data from a CSV file in
 
 ## Overview
 
-It's a fairly common need zip code data in a Sitecore project. Perhaps you need the coordinates of a zip code to put a pin in a map, perhaps to get time zone information for a zip code (especially since the current version of Sitecore's GeoIP does not provide time zone).
+It's a fairly common need zip code data in a Sitecore project. Perhaps you need the coordinates of a zip code to put a pin in a map, perhaps you need to get time zone information for a zip code (especially since the current version of Sitecore's GeoIP does not provide time zone).
 
 This solution maintains a database of fairly lightweight zip code data. It contains timezone offset, DST participation, city and state, and latitude and longitude. If you have access to more robost data, you can replace (or override) the default provider.
 
