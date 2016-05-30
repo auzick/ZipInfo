@@ -1,5 +1,5 @@
 # ZipInfo
-Zip code data provider for Sitecore. Automatically loads data from a CSV file into a MongoDB database, and provies a caching layer.
+Zip code database provider (not a data provider) for Sitecore. Automatically loads data from a CSV file into a MongoDB database, and provies a caching layer.
 
 ## Overview
 
