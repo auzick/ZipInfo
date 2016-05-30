@@ -92,15 +92,15 @@ If you want to move or rename the data file, there is a setting in the `zipinfo.
 - The name of a file in the App_Data folder
 - The name of a file on the Sitecore data folder.
 
-## The Data Provider
-The module is designed to allow a swappable data provider. The data provider is responsible for...
+## The database provider
+The module is designed to allow a swappable database provider. The database provider is responsible for...
 
 - Loading data from an external source
 - Storing and querying the data.
 
 ### The default provider
 
-The module ships with a MongoDB-based data provider. This provider...
+The module ships with a MongoDB-based database provider. This provider...
 
 - Stores data in a MongoDB database
 - Imports data from a basic zip code database from [https://boutell.com/zipcodes/](https://boutell.com/zipcodes/), which the update package will place in the App_Data folder.
