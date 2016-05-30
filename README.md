@@ -72,7 +72,7 @@ Most of what you will need is in static methods in the ZipInfo.ZipInfoManager cl
 	Flushes the cache
 
 
-### Cache configuration
+## Cache configuration
 The cache is configured in the `ZipInfo.config` file under `sitecore/zipInfo/cache`. The settings are 
 
 - `maxSize`
