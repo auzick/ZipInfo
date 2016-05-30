@@ -8,8 +8,6 @@ namespace ZipInfo.Providers
 
         IZipCode Get(int zipCode);
 
-        void Wipe();
-
         bool Set(IZipCode zipCode);
 
         string Reload(bool force);

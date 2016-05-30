@@ -29,11 +29,6 @@ namespace ZipInfo
             return fromProvider;
         }
 
-        public static void Wipe()
-        {
-            Provider.Wipe();
-        }
-
         public static bool Set(IZipCode zipCode)
         {
             return Provider.Set(zipCode);

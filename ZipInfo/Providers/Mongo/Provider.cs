@@ -43,11 +43,6 @@ namespace ZipInfo.Providers.Mongo
             return _zipCodesCollection.FindOneAs<ZipCode>(GetZipQuery(zipCode));
         }
 
-        public void Wipe()
-        {
-            _zipCodesCollection.Drop();
-        }
-
         public bool Set(IZipCode zipCode)
         {
             return _zipCodesCollection.Insert(zipCode).Ok;
@@ -147,6 +142,11 @@ namespace ZipInfo.Providers.Mongo
                 lastUpdated.ToShortTimeString()
                 ), this);
             return sourceFileDate > lastUpdated;
+        }
+
+        protected void Wipe()
+        {
+            _zipCodesCollection.Drop();
         }
 
 
