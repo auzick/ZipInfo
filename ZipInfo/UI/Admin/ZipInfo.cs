@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Sitecore;
+using Sitecore.Pipelines.LoadHtml;
 using Sitecore.StringExtensions;
 using ZipInfo.Providers.Mongo;
 
@@ -54,10 +56,14 @@ namespace ZipInfo.UI.Admin
                 LookupResultLiteral.Text = "Not found";
                 return;
             }
+
             LookupResultLiteral.Text +=
-                "Zip:{0}<br/>City:{1}<br/>State:{2}<br/>Time zone offset:{3}<br/>DST:{4}<br/>Latitude:{5}<br/>Longitude:{6}<br/>"
+                "Zip:{0}<br/>City:{1}<br/>State:{2}<br/>Time zone offset:{3}<br/>DST:{4}<br/>Latitude:{5}<br/>Longitude:{6}<br/><br/>Local time:{7}"
                     .FormatWith(
-                        info.Zip, info.City, info.State, info.TimezoneOffset, info.ParticipatesInDst, info.Latitude, info.Longitude);
+                        info.Zip, info.City, info.State, info.TimezoneOffset, info.ParticipatesInDst, info.Latitude, info.Longitude,
+                        info.LocalDateTime.ToShortTimeString()
+                        );
+
             CacheStateLiteral.Text = GetCacheState();
         }
 

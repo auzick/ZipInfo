@@ -204,6 +204,7 @@
   <ItemGroup>
     <Compile Include="Cache\ZipCache.cs" />
     <Compile Include="Configuration\Settings.cs" />
+    <Compile Include="Providers\Mongo\ContactLocationExtensions.cs" />
     <Compile Include="Providers\IZipInfoProvider.cs" />
     <Compile Include="Providers\Mongo\MongoProperty.cs" />
     <Compile Include="Providers\Mongo\ZipCode.cs" />

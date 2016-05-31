@@ -8,6 +8,7 @@ using System.Reflection;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
+using Sitecore.Analytics;
 using Sitecore.Diagnostics;
 using Sitecore.IO;
 using Sitecore.Services.Core.ComponentModel;
@@ -273,8 +274,12 @@ namespace ZipInfo.Providers.Mongo
 
         protected bool GetBool(string value)
         {
-            var v = (bool)false;
-            bool.TryParse(value, out v);
+            var v = false;
+            if (bool.TryParse(value, out v))
+                return v;
+            int vi;
+            if (int.TryParse(value, out vi))
+                v = Convert.ToBoolean(vi);
             return v;
         }
 

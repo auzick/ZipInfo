@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using System;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace ZipInfo.Providers.Mongo
@@ -18,5 +19,15 @@ namespace ZipInfo.Providers.Mongo
         public int TimezoneOffset { get; set; }
 
         public bool ParticipatesInDst { get; set; }
+
+        [BsonIgnore]
+        public DateTime LocalDateTime
+        {
+            get
+            {
+                var isDst = TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Local));
+                return DateTime.UtcNow.AddHours(TimezoneOffset).AddHours(isDst && ParticipatesInDst ? 1 : 0);
+            }
+        }
     }
 }
