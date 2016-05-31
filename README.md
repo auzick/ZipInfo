@@ -103,6 +103,9 @@ The module is designed to allow a swappable database provider. The database prov
 The module ships with a MongoDB-based database provider. This provider...
 
 - Stores data in a MongoDB database
+- Exposes the standard Data Access methods
+- Exposes a property that returns the local DateTime in that zip code (`LocalDateTime`).
+- Provides an extensions for Sitecore's ContactLocation class that exposes the local DateTime in the location's zip code (`GetLocalDateTime`), 
 - Imports data from a basic zip code database from [https://boutell.com/zipcodes/](https://boutell.com/zipcodes/), which the update package will place in the App_Data folder.
 
 ####Overriding the default provider
