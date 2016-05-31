@@ -132,7 +132,7 @@ Simply add mappings for your fields.
 In another scenerio, you might be again be satisfied with the MongoDB for storage, but need a different mechanism for importing the data (perhaps through a web service). In that case, you'd override the `Load` method. There you can
 do whatever is necessary to import the zip code data into mongo. The methods in the base class are mostly protected, so you still have access to the `Set` method to insert your records as you import them.
 
-When overriding the MongoDB provider, you can use the `GetProperty` and `SetProperty` methods. These properties are similar to Sitecore properties, but are persisted to the `zipingo.zipcodes` collection in MongoDB rather than the Sitecore database. 
+When overriding the MongoDB provider, you can use the `GetProperty` and `SetProperty` methods. These properties are similar to Sitecore properties, but are persisted to the `zipinfo.zipcodes` collection in MongoDB rather than the Sitecore database. The `LastUpdateDateProperty` uses these methods.
 
 #### Replacing the provider
 You can replace the default provider by
