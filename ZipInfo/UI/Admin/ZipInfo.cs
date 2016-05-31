@@ -9,6 +9,7 @@ namespace ZipInfo.UI.Admin
     {
         protected System.Web.UI.HtmlControls.HtmlForm form1;
         protected System.Web.UI.WebControls.CheckBox ForceCheckbox;
+        protected System.Web.UI.WebControls.CheckBox WipeCheckbox;
         protected System.Web.UI.WebControls.Button ReloadButton;
         protected System.Web.UI.WebControls.Label ResultLabel;
         protected System.Web.UI.WebControls.Label Label1;
@@ -28,7 +29,7 @@ namespace ZipInfo.UI.Admin
 
         protected void ReloadButton_Click(object sender, EventArgs e)
         {
-            ResultLabel.Text = ZipInfoManager.Reload(ForceCheckbox.Checked);
+            ResultLabel.Text = ZipInfoManager.Reload(ForceCheckbox.Checked, WipeCheckbox.Checked);
         }
 
         protected void ClearCacheButton_Click(object sender, EventArgs e)
@@ -54,9 +55,9 @@ namespace ZipInfo.UI.Admin
                 return;
             }
             LookupResultLiteral.Text +=
-                "Zip:{0}<br/>City:{1}<br/>State:{2}<br/>Time zone offset:{3}<br/>DST:{4}<br/>Latitude:{5}<br/>Longitude:{6}<br/>ID:{7}<br/>"
+                "Zip:{0}<br/>City:{1}<br/>State:{2}<br/>Time zone offset:{3}<br/>DST:{4}<br/>Latitude:{5}<br/>Longitude:{6}<br/>"
                     .FormatWith(
-                        info.Zip, info.City, info.State, info.TimezoneOffset, info.ParticipatesInDst, info.Latitude, info.Longitude, info.Id);
+                        info.Zip, info.City, info.State, info.TimezoneOffset, info.ParticipatesInDst, info.Latitude, info.Longitude);
             CacheStateLiteral.Text = GetCacheState();
         }
 

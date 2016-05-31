@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Sitecore.Diagnostics;
 using Sitecore.IO;
+using Sitecore.Services.Core.ComponentModel;
 using Sitecore.StringExtensions;
 using Sitecore.Xml;
 using ZipInfo.Configuration;
@@ -43,9 +48,17 @@ namespace ZipInfo.Providers.Mongo
             return _zipCodesCollection.FindOneAs<ZipCode>(GetZipQuery(zipCode));
         }
 
+        public bool Set(IZipCode zipCode, out WriteConcernResult result)
+        {
+            var q = GetZipQuery(zipCode.Zip);
+            result = _zipCodesCollection.Update(q, Update.Replace(zipCode), UpdateFlags.Upsert);
+            return result.Ok;
+        }
+
         public bool Set(IZipCode zipCode)
         {
-            return _zipCodesCollection.Insert(zipCode).Ok;
+            var q = GetZipQuery(zipCode.Zip);
+            return _zipCodesCollection.Update(q, Update.Replace(zipCode), UpdateFlags.Upsert).Ok;
         }
 
         public string Reload(bool force)
@@ -55,10 +68,16 @@ namespace ZipInfo.Providers.Mongo
                 var file = GetSourceFilePath();
                 if (string.IsNullOrWhiteSpace(file))
                     return "ZipInfo: Zip code file not found.";
-                return Load(file, true);
+                return Load(file);
             }
             return "ZipInfo: The data is current.";
         }
+
+        public void Wipe()
+        {
+            _zipCodesCollection.Drop();
+        }
+
 
         // -------------------------------------------------------------------------------------------------------
         #region Mongo provider specific implementation.
@@ -87,16 +106,16 @@ namespace ZipInfo.Providers.Mongo
         }
 
 
-        protected string Load(string path, bool skipFirst)
+        protected string Load(string path)
         {
             var watch = new Stopwatch();
-            Wipe();
             using (var csv = new CsvFileReader(path))
             {
-                // Ignoring the first line
-                if (skipFirst) csv.ReadLine();
                 var line = csv.ReadLine();
-                int linesRead = 0;
+                var linesRead = (int)0;
+                var recordsWritten = (int)0;
+                var recordsUpdated = (int)0;
+                var recordsFailed = (int)0;
                 watch.Start();
                 while (line != null)
                 {
@@ -104,12 +123,23 @@ namespace ZipInfo.Providers.Mongo
                     if (line == null || line.Count != 7)
                         continue;
                     linesRead++;
-                    IZipCode zip = LoadRecord(line);
-                    Set(zip);
+                    var zip = LoadRecord(line);
+                    WriteConcernResult setResult;
+                    Set(zip, out setResult);
+                    if (setResult.UpdatedExisting)
+                        recordsUpdated++;
+                    else
+                        recordsWritten++;
+                    if (!setResult.Ok)
+                        recordsFailed++;
                 }
                 LastUpdateDateProperty = File.GetLastWriteTime(path);
                 watch.Stop();
-                var result = "ZipInfo: loaded {0} lines in {1} ms".FormatWith(linesRead,
+                var result = "ZipInfo: Read {0} lines, {1} new records, {2} updated records, {3} failed operations, in {4} ms".FormatWith(
+                    linesRead,
+                    recordsWritten,
+                    recordsUpdated,
+                    recordsFailed,
                     watch.ElapsedMilliseconds.ToString());
                 Log.Info(result, this);
                 return result;
@@ -144,11 +174,6 @@ namespace ZipInfo.Providers.Mongo
             return sourceFileDate > lastUpdated;
         }
 
-        protected void Wipe()
-        {
-            _zipCodesCollection.Drop();
-        }
-
 
         private static IMongoQuery GetZipQuery(int zip)
         {
@@ -164,7 +189,7 @@ namespace ZipInfo.Providers.Mongo
         // ---------------------------------------------------------------------------------------------------------
         // Properties can managed in the zipinfo.properties mongo collection
 
-        private string GetProperty(DatabaseProperty property)
+        protected string GetProperty(DatabaseProperty property)
         {
             try
             {
@@ -177,7 +202,7 @@ namespace ZipInfo.Providers.Mongo
             }
         }
 
-        private bool SetProperty(DatabaseProperty property, string value)
+        protected bool SetProperty(DatabaseProperty property, string value)
         {
             var existing = _propertiesCollection.FindOneAs<MongoProperty>(Query<MongoProperty>.EQ(c => c.Name, property.ToString()));
             if (existing != null)
@@ -192,7 +217,7 @@ namespace ZipInfo.Providers.Mongo
             }
         }
 
-        private DateTime LastUpdateDateProperty
+        protected DateTime LastUpdateDateProperty
         {
             get
             {

@@ -12,7 +12,7 @@ namespace ZipInfo.Providers
 
         string Reload(bool force);
 
-
+        void Wipe();
 
     }
 }

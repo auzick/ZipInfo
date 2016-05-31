@@ -34,10 +34,11 @@ namespace ZipInfo
             return Provider.Set(zipCode);
         }
 
-        public static string Reload(bool force)
+        public static string Reload(bool force, bool wipe)
         {
             Cache.Clear();
-            return Provider.Reload(force);
+            if (wipe) Provider.Wipe();
+            return Provider.Reload(force || wipe);
         }
 
 

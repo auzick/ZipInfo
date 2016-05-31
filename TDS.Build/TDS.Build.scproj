@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <ExcludedAssemblies Include="ZipInfo.dll" />
+    <ExcludedAssemblies Include="ZipInfo.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\HedgehogDevelopment\SitecoreProject\v9.0\HedgehogDevelopment.SitecoreProject.targets" Condition="Exists('$(MSBuildExtensionsPath)\HedgehogDevelopment\SitecoreProject\v9.0\HedgehogDevelopment.SitecoreProject.targets')" />
 </Project>

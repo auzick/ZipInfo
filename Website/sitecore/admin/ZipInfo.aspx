@@ -34,7 +34,9 @@
             <hr />
             <h2>Reload data from file</h2>
             <p>
-                <asp:CheckBox ID="ForceCheckbox" runat="server" Text="Force" />
+                <asp:CheckBox ID="ForceCheckbox" runat="server" Text="Force (Load even if file date is not newer.)" />
+                <br />
+                <asp:CheckBox ID="WipeCheckbox" runat="server" Text="Wipe (Delete all records from Mongo before loading)" />
                 <br />
                 <asp:Button ID="ReloadButton" runat="server" Text="Reload" OnClick="ReloadButton_Click" />
             </p>
