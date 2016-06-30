@@ -1,29 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
-using Sitecore.Analytics;
 using Sitecore.Diagnostics;
 using Sitecore.IO;
-using Sitecore.Services.Core.ComponentModel;
 using Sitecore.StringExtensions;
-using Sitecore.Xml;
-using ZipInfo.Configuration;
+using ZipInfo.Model;
 
-namespace ZipInfo.Providers.Mongo
+namespace ZipInfo.Providers
 {
-    public class Provider : IZipInfoProvider
+    public class ZipInfoProviderMongo : ZipInfoProvider
     {
         // This provider uses mongo to store the zip code info, using data from a csv file available from https://boutell.com/zipcodes/.
 
         // Thanks to Anders Laub Christoffersen for his blog post:
         // https://laubplusco.net/working-custom-mongodb-collections-sitecore-8-using-webapi/
+
+        // Thanks to Adam Conn for his blog post:
+        // http://www.sitecore.net/da-dk/learn/blogs/technical-blogs/getting-to-know-sitecore/posts/2010/06/managing-temporary-data.aspx
 
         // Sample connection string for the zipcode collection
         //       <add name="zipinfo" connectionString="mongodb://localhost:27017/zipinfo" />
@@ -33,20 +30,49 @@ namespace ZipInfo.Providers.Mongo
         // When implementing another MongoDB-based provider using a different csv-based data source,
         // it might be simplest to inherit from this class and override the LoadRecord() method.
 
+        private MongoCollection _zipCodesCollection;
 
-        public Provider()
+        private string _dataFileLocation;
+        private string _connectionString;
+        private string _collectionName;
+
+        public string DataFileLocation => _dataFileLocation;
+
+        public string ConnectionString => _connectionString;
+
+        public string CollectionName => _collectionName;
+
+
+        static ZipInfoProviderMongo()
         {
-            InitializeCollections();
+        }
+
+        public override void Initialize(string name, NameValueCollection config)
+        {
+            base.Initialize(name, config);
+
+            _dataFileLocation = config["dataFileLocation"];
+            Assert.IsNotNullOrEmpty(_dataFileLocation, "dataFileLocation");
+
+            _connectionString = config["connectionString"];
+            Assert.IsNotNullOrEmpty(_dataFileLocation, "connectionString");
+
+            _collectionName = config["collectionName"];
+            Assert.IsNotNullOrEmpty(_dataFileLocation, "collectionName");
+
+            var connectionString = global::Sitecore.Configuration.Settings.GetConnectionString(ConnectionString);
+            _zipCodesCollection = GetCollection(connectionString, CollectionName);
+            Assert.IsNotNull(_zipCodesCollection, "_zipCodesCollection");
         }
 
         public IEnumerable<IZipCode> GetAll()
         {
-            return _zipCodesCollection.FindAllAs<ZipCode>();
+            return _zipCodesCollection.FindAllAs<SimpleZipCode>();
         }
 
-        public IZipCode Get(int zipCode)
+        public override IZipCode Get(int zipCode)
         {
-            return _zipCodesCollection.FindOneAs<ZipCode>(GetZipQuery(zipCode));
+            return _zipCodesCollection.FindOneAs<SimpleZipCode>(GetZipQuery(zipCode));
         }
 
         public bool Set(IZipCode zipCode, out WriteConcernResult result)
@@ -56,13 +82,7 @@ namespace ZipInfo.Providers.Mongo
             return result.Ok;
         }
 
-        public bool Set(IZipCode zipCode)
-        {
-            var q = GetZipQuery(zipCode.Zip);
-            return _zipCodesCollection.Update(q, Update.Replace(zipCode), UpdateFlags.Upsert).Ok;
-        }
-
-        public string Reload(bool force)
+        public override string Reload(bool force)
         {
             if (force || ShouldReload())
             {
@@ -74,7 +94,7 @@ namespace ZipInfo.Providers.Mongo
             return "ZipInfo: The data is current.";
         }
 
-        public void Wipe()
+        public override void Wipe()
         {
             _zipCodesCollection.Drop();
         }
@@ -82,30 +102,6 @@ namespace ZipInfo.Providers.Mongo
 
         // -------------------------------------------------------------------------------------------------------
         #region Mongo provider specific implementation.
-
-        protected enum DatabaseProperty
-        {
-            DataLastUpdated
-        }
-
-        internal const string ConnectionStringName = "zipinfo";
-        internal const string DataCollectionName = "zipinfo.zipcodes";
-        private MongoCollection _zipCodesCollection;
-        internal const string PropertiesCollectionName = "zipinfo.properties";
-        private MongoCollection _propertiesCollection;
-
-        protected static string FileNameSetting => XmlUtil.GetAttribute("location", Settings.ProviderConfig.SelectSingleNode("zipDataFile"));
-
-        protected void InitializeCollections()
-        {
-            var connectionString =
-                global::Sitecore.Configuration.Settings.GetConnectionString(ConnectionStringName);
-            _zipCodesCollection = GetCollection(connectionString, DataCollectionName);
-            Assert.IsNotNull(_zipCodesCollection, "_zipCodesCollection");
-            _propertiesCollection = GetCollection(connectionString, PropertiesCollectionName);
-            Assert.IsNotNull(_propertiesCollection, "_propertiesCollection");
-        }
-
 
         protected string Load(string path)
         {
@@ -125,8 +121,9 @@ namespace ZipInfo.Providers.Mongo
                         continue;
                     linesRead++;
                     var zip = LoadRecord(line);
-                    WriteConcernResult setResult;
-                    Set(zip, out setResult);
+                    var q = GetZipQuery(zip.Zip);
+                    var setResult = _zipCodesCollection.Update(q, Update.Replace(zip), UpdateFlags.Upsert);
+
                     if (setResult.UpdatedExisting)
                         recordsUpdated++;
                     else
@@ -134,9 +131,9 @@ namespace ZipInfo.Providers.Mongo
                     if (!setResult.Ok)
                         recordsFailed++;
                 }
-                LastUpdateDateProperty = File.GetLastWriteTime(path);
+                PropertyManager.Provider.LastUpdateDateProperty = File.GetLastWriteTime(path);
                 watch.Stop();
-                var result = "ZipInfo: Read {0} lines, {1} new records, {2} updated records, {3} failed operations, in {4} ms".FormatWith(
+                var result = "ZipInfoProviderMongo: Read {0} lines, {1} new records, {2} updated records, {3} failed operations, in {4} ms".FormatWith(
                     linesRead,
                     recordsWritten,
                     recordsUpdated,
@@ -149,7 +146,7 @@ namespace ZipInfo.Providers.Mongo
 
         protected IZipCode LoadRecord(List<string> fields)
         {
-            var zip = new ZipCode
+            var zip = new SimpleZipCode
             {
                 Zip = GetInt(fields[0]),
                 City = fields[1],
@@ -164,9 +161,9 @@ namespace ZipInfo.Providers.Mongo
 
         protected bool ShouldReload()
         {
-            var lastUpdated = LastUpdateDateProperty;
+            var lastUpdated = PropertyManager.Provider.LastUpdateDateProperty;
             var sourceFileDate = GetSourceFileDate();
-            Log.Info("ZipInfo: File date is {0} {1}; last imported {2} {3}".FormatWith(
+            Log.Info("ZipInfoProviderMongo: File date is {0} {1}; last imported {2} {3}".FormatWith(
                 sourceFileDate.ToShortDateString(),
                 sourceFileDate.ToShortTimeString(),
                 lastUpdated.ToShortDateString(),
@@ -175,10 +172,9 @@ namespace ZipInfo.Providers.Mongo
             return sourceFileDate > lastUpdated;
         }
 
-
         private static IMongoQuery GetZipQuery(int zip)
         {
-            return Query<ZipCode>.EQ(c => c.Zip, zip);
+            return Query<SimpleZipCode>.EQ(c => c.Zip, zip);
         }
 
         private static MongoCollection GetCollection(string connectionString, string collectionName)
@@ -187,73 +183,24 @@ namespace ZipInfo.Providers.Mongo
             return new MongoClient(url).GetServer().GetDatabase(url.DatabaseName).GetCollection(collectionName);
         }
 
-        // ---------------------------------------------------------------------------------------------------------
-        // Properties can managed in the zipinfo.properties mongo collection
-
-        protected string GetProperty(DatabaseProperty property)
-        {
-            try
-            {
-                var val = _propertiesCollection.FindOneAs<MongoProperty>(Query<MongoProperty>.EQ(c => c.Name, property.ToString()));
-                return val?.Value;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        protected bool SetProperty(DatabaseProperty property, string value)
-        {
-            var existing = _propertiesCollection.FindOneAs<MongoProperty>(Query<MongoProperty>.EQ(c => c.Name, property.ToString()));
-            if (existing != null)
-            {
-                var query = Query<MongoProperty>.EQ(p => p.Name, property.ToString());
-                return _propertiesCollection.Update(query, new UpdateBuilder().Set("Value", value)).Ok;
-            }
-            else
-            {
-                var prop = new MongoProperty() { Name = property.ToString(), Value = value };
-                return _propertiesCollection.Insert(prop).Ok;
-            }
-        }
-
-        protected DateTime LastUpdateDateProperty
-        {
-            get
-            {
-                DateTime lastUpdated;
-                if (!DateTime.TryParse(GetProperty(DatabaseProperty.DataLastUpdated), out lastUpdated))
-                {
-                    lastUpdated = DateTime.MinValue;
-                }
-                return lastUpdated;
-            }
-            set
-            {
-                SetProperty(DatabaseProperty.DataLastUpdated, value.ToUniversalTime().ToString("O"));
-            }
-        }
-
         private DateTime GetSourceFileDate()
         {
             var file = GetSourceFilePath();
-            if (string.IsNullOrWhiteSpace(file))
-                return DateTime.MaxValue;
-            return TimeZoneInfo.ConvertTime(File.GetLastWriteTimeUtc(file), TimeZoneInfo.Local);
+            return string.IsNullOrWhiteSpace(file) ? DateTime.MaxValue : TimeZoneInfo.ConvertTime(File.GetLastWriteTimeUtc(file), TimeZoneInfo.Local);
         }
 
         private string GetSourceFilePath()
         {
+            if (File.Exists(DataFileLocation)) return DataFileLocation;
+
             var request = System.Web.HttpContext.Current.Request;
-            string fileName = FileNameSetting;
-            if (File.Exists(fileName)) return fileName;
+            var loc = string.Empty;
 
-            fileName = request.MapPath("~/App_Data/{0}".FormatWith(fileName));
-            if (File.Exists(fileName)) return fileName;
+            loc = request.MapPath("~/App_Data/{0}".FormatWith(DataFileLocation));
+            if (File.Exists(loc)) return loc;
 
-            fileName = "{0}{1}".FormatWith(Sitecore.StringUtil.EnsurePostfix('\\', Sitecore.Configuration.Settings.DataFolder), fileName);
-            if (File.Exists(fileName)) return fileName;
+            loc = "{0}{1}".FormatWith(Sitecore.StringUtil.EnsurePostfix('\\', Sitecore.Configuration.Settings.DataFolder), DataFileLocation);
+            if (File.Exists(loc)) return loc;
 
             return null;
         }

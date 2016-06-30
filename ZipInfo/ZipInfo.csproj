@@ -202,25 +202,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache\ZipCache.cs" />
-    <Compile Include="Configuration\Settings.cs" />
-    <Compile Include="Providers\Mongo\ContactLocationExtensions.cs" />
-    <Compile Include="Providers\IZipInfoProvider.cs" />
-    <Compile Include="Providers\Mongo\MongoProperty.cs" />
-    <Compile Include="Providers\Mongo\ZipCode.cs" />
-    <Compile Include="Providers\Mongo\Provider.cs" />
+    <Compile Include="ContactLocationExtensions.cs" />
+    <Compile Include="Model\IProperty.cs" />
+    <Compile Include="PropertyManager.cs" />
+    <Compile Include="Model\MongoProperty.cs" />
+    <Compile Include="Model\SimpleZipCode.cs" />
+    <Compile Include="Providers\PropertyProvider.cs" />
+    <Compile Include="Providers\PropertyProviderCollection.cs" />
+    <Compile Include="Providers\PropertyProviderMongo.cs" />
+    <Compile Include="Providers\ZipInfoProvider.cs" />
+    <Compile Include="Providers\ZipInfoProviderCache.cs" />
+    <Compile Include="Providers\ZipInfoProviderCollection.cs" />
+    <Compile Include="Providers\ZipInfoProviderMongo.cs" />
     <Compile Include="UI\Admin\ZipInfo.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="ZipInfoManager.cs" />
-    <Compile Include="Pipelines\Initialize\InitializeZipData.cs" />
+    <Compile Include="Pipelines\Initialize\InitializeMongoZipData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Providers\IZipCode.cs" />
+    <Compile Include="Model\IZipCode.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

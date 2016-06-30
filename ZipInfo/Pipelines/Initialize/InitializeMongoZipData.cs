@@ -2,11 +2,11 @@
 
 namespace ZipInfo.Pipelines.Initialize
 {
-    public class InitializeZipData
+    public class InitializeMongoZipData
     {
         public void Process(PipelineArgs args)
         {
-            ZipInfoManager.Provider.Reload(false);
+            ZipInfoManager.Providers["mongo"].Reload(false);
         }
 
     }

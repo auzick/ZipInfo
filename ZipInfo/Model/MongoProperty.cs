@@ -1,8 +1,8 @@
 ﻿using MongoDB.Bson;
 
-namespace ZipInfo.Providers.Mongo
+namespace ZipInfo.Model
 {
-    public class MongoProperty
+    public class MongoProperty: IProperty
     {
         public ObjectId Id { get; set; }
         public string Name { get; set; }

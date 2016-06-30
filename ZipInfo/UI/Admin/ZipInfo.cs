@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Linq;
 using Sitecore;
-using Sitecore.Pipelines.LoadHtml;
 using Sitecore.StringExtensions;
-using ZipInfo.Providers.Mongo;
+using ZipInfo.Model;
+using ZipInfo.Providers;
 
 namespace ZipInfo.UI.Admin
 {
@@ -31,12 +30,14 @@ namespace ZipInfo.UI.Admin
 
         protected void ReloadButton_Click(object sender, EventArgs e)
         {
-            ResultLabel.Text = ZipInfoManager.Reload(ForceCheckbox.Checked, WipeCheckbox.Checked);
+            var provider = ((ZipInfoProviderMongo) ZipInfoManager.Providers["mongo"]);
+            if (WipeCheckbox.Checked) provider.Wipe();
+            ResultLabel.Text = provider.Reload(ForceCheckbox.Checked);
         }
 
         protected void ClearCacheButton_Click(object sender, EventArgs e)
         {
-            ZipInfoManager.ClearCache();
+            ZipInfoManager.CacheProvider.Wipe();
             CacheStateLiteral.Text = GetCacheState();
         }
 
@@ -49,8 +50,8 @@ namespace ZipInfo.UI.Admin
                 LookupResultLiteral.Text = "Invalid zip code";
                 return;
             }
-            LookupResultLiteral.Text += ZipInfoManager.IsCached(zip) ? "(cached)<br>" : "";
-            var info = (ZipCode)ZipInfoManager.Get(zip);
+            LookupResultLiteral.Text += ZipInfoManager.CacheProvider.IsCached(zip) ? "(cached)<br>" : "";
+            var info = (SimpleZipCode)ZipInfoManager.Get(zip);
             if (info == null)
             {
                 LookupResultLiteral.Text = "Not found";
@@ -69,7 +70,9 @@ namespace ZipInfo.UI.Admin
 
         private string GetCacheState()
         {
-            return "Size: {0}<br>Items: {1}".FormatWith(StringUtil.GetSizeString(ZipInfoManager.GetCacheSize()), ZipInfoManager.GetCacheCount());
+            return "Size: {0}<br>Items: {1}".FormatWith(
+                StringUtil.GetSizeString(ZipInfoManager.CacheProvider.GetCacheSize()), 
+                ZipInfoManager.CacheProvider.GetCacheCount());
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ZipInfo.Providers
+﻿namespace ZipInfo.Model
 {
     public interface IZipCode
     {

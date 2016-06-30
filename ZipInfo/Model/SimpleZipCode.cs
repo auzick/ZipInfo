@@ -1,10 +1,9 @@
 ﻿using System;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace ZipInfo.Providers.Mongo
+namespace ZipInfo.Model
 {
-    public class ZipCode : IZipCode
+    public class SimpleZipCode : IZipCode
     {
         [BsonId]
         public int Zip { get; set; }

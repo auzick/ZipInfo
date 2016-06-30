@@ -1,65 +1,47 @@
 ﻿using System.Collections.Generic;
-using ZipInfo.Cache;
+using System.Linq;
+using Sitecore.Configuration;
+using ZipInfo.Model;
 using ZipInfo.Providers;
 
 namespace ZipInfo
 {
     public static class ZipInfoManager
     {
-        public static IZipInfoProvider Provider { get; }
 
-        private static readonly ZipCache Cache = new ZipCache("ZipInfo", Configuration.Settings.Cache.MaxSize);
+        private static readonly ProviderHelper<ZipInfoProvider, ZipInfoProviderCollection> Helper;
 
         static ZipInfoManager()
         {
-            Provider = Configuration.Settings.GetProvider();
+            Helper = new ProviderHelper<ZipInfoProvider, ZipInfoProviderCollection>("zipInfoData");
         }
 
-        public static IEnumerable<IZipCode> GetAll()
+        public static ZipInfoProviderCollection Providers => Helper.Providers;
+
+        public static ZipInfoProviderCache CacheProvider => Helper.Providers["cache"] as ZipInfoProviderCache;
+
+        public static T Get<T>(int zipCode)
         {
-            return Provider.GetAll();
+            IZipCode zip = null;
+            foreach (ZipInfoProvider provider in Helper.Providers)
+            {
+                zip = provider.Get(zipCode);
+                if (provider.IsAborted) break;
+            }
+            return (T)zip;
+
+            //var zip =
+            //    (from ZipInfoProvider provider in Helper.Providers select provider.Get(zipCode))
+            //        .FirstOrDefault(z => z != null);
+            //if (zip != null)
+            //    CacheProvider.Set(zip);
+            //return (T)zip;
         }
 
         public static IZipCode Get(int zipCode)
         {
-            var fromCache = Cache.GetZip(zipCode);
-            if (fromCache != null) return (IZipCode)fromCache;
-            var fromProvider = Provider.Get(zipCode);
-            Cache.SetZip(zipCode, fromProvider);
-            return fromProvider;
+            return Get<IZipCode>(zipCode);
         }
-
-        public static bool Set(IZipCode zipCode)
-        {
-            return Provider.Set(zipCode);
-        }
-
-        public static string Reload(bool force, bool wipe)
-        {
-            Cache.Clear();
-            if (wipe) Provider.Wipe();
-            return Provider.Reload(force || wipe);
-        }
-
-
-        public static bool IsCached(int zipCode)
-        {
-            return Cache.GetZip(zipCode) != null;
-        }
-
-        public static long GetCacheSize()
-        {
-            return Cache.InnerCache.Size;
-        }
-
-        public static int GetCacheCount()
-        {
-            return Cache.InnerCache.Count;
-        }
-
-        public static void ClearCache()
-        {
-            Cache.Clear();
-        }
+ 
     }
 }
