@@ -22,20 +22,13 @@ namespace ZipInfo
 
         public static T Get<T>(int zipCode)
         {
-            IZipCode zip = null;
+            var zip = default(T);
             foreach (ZipInfoProvider provider in Helper.Providers)
             {
-                zip = provider.Get(zipCode);
+                zip = (T)provider.Get(zipCode);
                 if (provider.IsAborted) break;
             }
-            return (T)zip;
-
-            //var zip =
-            //    (from ZipInfoProvider provider in Helper.Providers select provider.Get(zipCode))
-            //        .FirstOrDefault(z => z != null);
-            //if (zip != null)
-            //    CacheProvider.Set(zip);
-            //return (T)zip;
+            return zip;
         }
 
         public static IZipCode Get(int zipCode)
