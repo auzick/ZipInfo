@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using Sitecore;
 using Sitecore.Diagnostics;
 using ZipInfo.Model;

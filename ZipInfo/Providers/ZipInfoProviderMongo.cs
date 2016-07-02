@@ -9,6 +9,7 @@ using Sitecore.Diagnostics;
 using Sitecore.IO;
 using Sitecore.StringExtensions;
 using ZipInfo.Model;
+using ZipInfo.Pipelines.GetMongoZip;
 
 namespace ZipInfo.Providers
 {
@@ -65,22 +66,22 @@ namespace ZipInfo.Providers
             Assert.IsNotNull(_zipCodesCollection, "_zipCodesCollection");
         }
 
-        public IEnumerable<IZipCode> GetAll()
-        {
-            return _zipCodesCollection.FindAllAs<SimpleZipCode>();
-        }
+        //public IEnumerable<IZipCode> GetAll()
+        //{
+        //    return _zipCodesCollection.FindAllAs<SimpleZipCode>();
+        //}
 
         public override IZipCode Get(int zipCode)
         {
-            return _zipCodesCollection.FindOneAs<SimpleZipCode>(GetZipQuery(zipCode));
+            return GetMongoZipPipeline.Run(_zipCodesCollection, zipCode).ZipData;
         }
 
-        public bool Set(IZipCode zipCode, out WriteConcernResult result)
-        {
-            var q = GetZipQuery(zipCode.Zip);
-            result = _zipCodesCollection.Update(q, Update.Replace(zipCode), UpdateFlags.Upsert);
-            return result.Ok;
-        }
+        //public bool Set(IZipCode zipCode, out WriteConcernResult result)
+        //{
+        //    var q = GetZipQuery(zipCode.Zip);
+        //    result = _zipCodesCollection.Update(q, Update.Replace(zipCode), UpdateFlags.Upsert);
+        //    return result.Ok;
+        //}
 
         public override string Reload(bool force)
         {

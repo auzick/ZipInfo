@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Sitecore.Configuration;
+﻿using Sitecore.Configuration;
 using ZipInfo.Model;
 using ZipInfo.Providers;
 
@@ -20,13 +18,17 @@ namespace ZipInfo
 
         public static ZipInfoProviderCache CacheProvider => Helper.Providers["cache"] as ZipInfoProviderCache;
 
-        public static T Get<T>(int zipCode)
+        public static T Get<T>(int zipCode) where T : IZipCode
         {
             var zip = default(T);
             foreach (ZipInfoProvider provider in Helper.Providers)
             {
                 zip = (T)provider.Get(zipCode);
                 if (provider.IsAborted) break;
+            }
+            if (zip != null)
+            {
+                CacheProvider.Set(zip);
             }
             return zip;
         }

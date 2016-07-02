@@ -204,6 +204,12 @@
   <ItemGroup>
     <Compile Include="ContactLocationExtensions.cs" />
     <Compile Include="Model\IProperty.cs" />
+    <Compile Include="Pipelines\GetMongoZip\GetMongoZipPipeline.cs" />
+    <Compile Include="Pipelines\GetMongoZip\GetMongoZipPipelineArgs.cs" />
+    <Compile Include="Pipelines\GetMongoZip\GetMongoZipProcessorBase.cs" />
+    <Compile Include="Pipelines\GetMongoZip\QueryMongo.cs" />
+    <Compile Include="Pipelines\ReloadMongoData\ReloadMongoDataPipelineArgs.cs" />
+    <Compile Include="Pipelines\ReloadMongoData\ReloadMongoDataProcessorBase.cs" />
     <Compile Include="PropertyManager.cs" />
     <Compile Include="Model\MongoProperty.cs" />
     <Compile Include="Model\SimpleZipCode.cs" />
