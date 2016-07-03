@@ -208,6 +208,13 @@
     <Compile Include="Pipelines\GetMongoZip\GetMongoZipPipelineArgs.cs" />
     <Compile Include="Pipelines\GetMongoZip\GetMongoZipProcessorBase.cs" />
     <Compile Include="Pipelines\GetMongoZip\QueryMongo.cs" />
+    <Compile Include="Pipelines\GetSourceFile\CheckAbsolutePath.cs" />
+    <Compile Include="Pipelines\GetSourceFile\CheckAppDataFolder.cs" />
+    <Compile Include="Pipelines\GetSourceFile\CheckSitecoreDataFolder.cs" />
+    <Compile Include="Pipelines\GetSourceFile\GetSourceFilePipeline.cs" />
+    <Compile Include="Pipelines\GetSourceFile\GetSourceFilePipelineArgs.cs" />
+    <Compile Include="Pipelines\GetSourceFile\GetSourceFileProcessorBase.cs" />
+    <Compile Include="Pipelines\GetSourceFile\ValidateConfig.cs" />
     <Compile Include="Pipelines\ReloadMongoData\ReloadMongoDataPipelineArgs.cs" />
     <Compile Include="Pipelines\ReloadMongoData\ReloadMongoDataProcessorBase.cs" />
     <Compile Include="PropertyManager.cs" />

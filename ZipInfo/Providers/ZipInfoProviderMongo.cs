@@ -10,6 +10,7 @@ using Sitecore.IO;
 using Sitecore.StringExtensions;
 using ZipInfo.Model;
 using ZipInfo.Pipelines.GetMongoZip;
+using ZipInfo.Pipelines.GetSourceFile;
 
 namespace ZipInfo.Providers
 {
@@ -192,18 +193,19 @@ namespace ZipInfo.Providers
 
         private string GetSourceFilePath()
         {
-            if (File.Exists(DataFileLocation)) return DataFileLocation;
+            return GetSourceFilePipeline.Run(DataFileLocation).Path;
+            //if (File.Exists(DataFileLocation)) return DataFileLocation;
 
-            var request = System.Web.HttpContext.Current.Request;
-            var loc = string.Empty;
+            //var request = System.Web.HttpContext.Current.Request;
+            //var loc = string.Empty;
 
-            loc = request.MapPath("~/App_Data/{0}".FormatWith(DataFileLocation));
-            if (File.Exists(loc)) return loc;
+            //loc = request.MapPath("~/App_Data/{0}".FormatWith(DataFileLocation));
+            //if (File.Exists(loc)) return loc;
 
-            loc = "{0}{1}".FormatWith(Sitecore.StringUtil.EnsurePostfix('\\', Sitecore.Configuration.Settings.DataFolder), DataFileLocation);
-            if (File.Exists(loc)) return loc;
+            //loc = "{0}{1}".FormatWith(Sitecore.StringUtil.EnsurePostfix('\\', Sitecore.Configuration.Settings.DataFolder), DataFileLocation);
+            //if (File.Exists(loc)) return loc;
 
-            return null;
+            //return null;
         }
 
         protected float GetFloat(string value)
